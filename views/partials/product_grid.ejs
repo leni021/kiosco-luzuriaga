@@ -1,0 +1,23 @@
+<% individuales.forEach(function(item) { %>
+    <div class="catalog-card" id="product-card-<%= item.id %>">
+        <div class="catalog-card-top">
+            <% if (item.destacado === 1) { %>
+                <div class="catalog-destacado">Mas vendido</div>
+            <% } %>
+            <div class="catalog-name"><%= item.nombre %></div>
+            <div class="catalog-variant"><%= item.variante %></div>
+            <div class="catalog-price">$<%= item.precio.toLocaleString('es-AR') %></div>
+        </div>
+        <% if (item.nombre.includes('Pancho')) { %>
+            <div class="promo-addon">
+                <input type="checkbox" id="addon-papas-ind-<%= item.id %>" value="1">
+                <label for="addon-papas-ind-<%= item.id %>">Agregar lluvia de papas</label>
+            </div>
+        <% } %>
+        <button class="btn-add-catalog"
+            onclick="addToCart(<%= item.id %>, '<%= item.nombre %>', '<%= item.variante %>', <%= item.precio %>, <%= item.es_promo %>)"
+            id="btn-add-<%= item.id %>">
+            Agregar
+        </button>
+    </div>
+<% }); %>

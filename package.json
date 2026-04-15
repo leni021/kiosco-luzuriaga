@@ -1,0 +1,25 @@
+{
+  "name": "kiosco-mama",
+  "version": "1.0.0",
+  "description": "Proyecto web para el kiosco de mi vieja - Luzuriaga 92",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js"
+  },
+  "keywords": [],
+  "author": "Lenning Fabián",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^17.4.1",
+    "ejs": "^3.1.10",
+    "express": "^4.21.0",
+    "helmet": "^8.1.0",
+    "multer": "^2.1.1",
+    "sqlite": "^5.1.1",
+    "sqlite3": "^6.0.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  }
+}

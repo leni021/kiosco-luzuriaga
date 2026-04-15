@@ -1,0 +1,221 @@
+<script>
+    let cart = [];
+
+    function notify(message) {
+        var el = document.getElementById('notification');
+        el.textContent = message;
+        el.classList.add('show');
+        setTimeout(function() { el.classList.remove('show'); }, 2500);
+    }
+
+    function updateCartUI() {
+        var body = document.getElementById('cart-body');
+        var emptyMsg = document.getElementById('cart-empty');
+        var badge = document.getElementById('cart-badge');
+        var totalEl = document.getElementById('cart-total');
+        var checkoutBtn = document.getElementById('btn-checkout');
+
+        var totalItems = cart.reduce(function(sum, item) { return sum + item.qty; }, 0);
+        var totalPrice = cart.reduce(function(sum, item) { return sum + (item.precio * item.qty); }, 0);
+
+        if (totalItems > 0) {
+            badge.textContent = totalItems;
+            badge.classList.remove('hidden');
+        } else {
+            badge.classList.add('hidden');
+        }
+
+        totalEl.textContent = '$' + totalPrice.toLocaleString('es-AR');
+        checkoutBtn.disabled = cart.length === 0;
+
+        if (cart.length === 0) {
+            emptyMsg.style.display = 'block';
+            var items = body.querySelectorAll('.cart-item');
+            items.forEach(function(el) { el.remove(); });
+            return;
+        }
+
+        emptyMsg.style.display = 'none';
+        var existingItems = body.querySelectorAll('.cart-item');
+        existingItems.forEach(function(el) { el.remove(); });
+
+        cart.forEach(function(item, index) {
+            var div = document.createElement('div');
+            div.className = 'cart-item';
+
+            var detailText = item.variante;
+            if (item.sabor) { detailText += ' - Placer ' + item.sabor; }
+            if (item.conPapas) { detailText += ' - Con lluvia de papas'; }
+
+            div.innerHTML = '<div class="cart-item-info">' +
+                '<div class="cart-item-name">' + item.nombre + '</div>' +
+                '<div class="cart-item-detail">' + detailText + '</div>' +
+                '<div class="cart-item-actions">' +
+                    '<button class="cart-qty-btn" onclick="changeQty(' + index + ', -1)">-</button>' +
+                    '<span class="cart-qty-value">' + item.qty + '</span>' +
+                    '<button class="cart-qty-btn" onclick="changeQty(' + index + ', 1)">+</button>' +
+                    '<button class="cart-item-remove" onclick="removeFromCart(' + index + ')">Quitar</button>' +
+                '</div>' +
+            '</div>' +
+            '<div class="cart-item-price">$' + (item.precio * item.qty).toLocaleString('es-AR') + '</div>';
+
+            body.insertBefore(div, emptyMsg);
+        });
+    }
+
+    function addToCart(id, nombre, variante, precio, esPromo) {
+        var sabor = '';
+        var conPapas = false;
+
+        if (esPromo === 1) {
+            var selectEl = document.getElementById('sabor-' + id);
+            if (selectEl) {
+                sabor = selectEl.value;
+                if (!sabor) {
+                    notify('Selecciona un sabor de bebida');
+                    return;
+                }
+            }
+            var papasCheck = document.getElementById('addon-papas-' + id);
+            if (papasCheck && papasCheck.checked) {
+                conPapas = true;
+            }
+        } else {
+            var papasCheckInd = document.getElementById('addon-papas-ind-' + id);
+            if (papasCheckInd && papasCheckInd.checked) {
+                conPapas = true;
+            }
+        }
+
+        var cartKey = id + '-' + sabor + '-' + (conPapas ? 'papas' : '');
+        var existing = cart.find(function(item) { return item.cartKey === cartKey; });
+
+        if (existing) {
+            existing.qty += 1;
+        } else {
+            cart.push({
+                cartKey: cartKey,
+                id: id,
+                nombre: nombre,
+                variante: variante,
+                precio: precio,
+                sabor: sabor,
+                conPapas: conPapas,
+                qty: 1
+            });
+        }
+
+        updateCartUI();
+        notify(nombre + ' agregado al pedido');
+    }
+
+    function changeQty(index, delta) {
+        if (cart[index]) {
+            cart[index].qty += delta;
+            if (cart[index].qty <= 0) { cart.splice(index, 1); }
+            updateCartUI();
+        }
+    }
+
+    function removeFromCart(index) {
+        cart.splice(index, 1);
+        updateCartUI();
+    }
+
+    function toggleCart() {
+        document.getElementById('cart-overlay').classList.toggle('active');
+        document.getElementById('cart-panel').classList.toggle('active');
+    }
+
+    function openCheckout() {
+        if (cart.length === 0) return;
+        toggleCart();
+        var totalPrice = cart.reduce(function(sum, item) { return sum + (item.precio * item.qty); }, 0);
+        document.getElementById('checkout-total').textContent = '$' + totalPrice.toLocaleString('es-AR');
+        document.getElementById('checkout-form-view').style.display = 'block';
+        document.getElementById('checkout-success-view').style.display = 'none';
+        document.getElementById('checkout-overlay').classList.add('active');
+    }
+
+    function closeCheckout() {
+        document.getElementById('checkout-overlay').classList.remove('active');
+    }
+
+    function closeCheckoutSuccess() {
+        document.getElementById('checkout-overlay').classList.remove('active');
+        cart = [];
+        updateCartUI();
+    }
+
+    function submitOrder() {
+        var fileInput = document.getElementById('comprobante-input');
+        var submitBtn = document.getElementById('btn-submit');
+        var form = fileInput.form || document.getElementById('checkout-form');
+
+        if (!fileInput.files || fileInput.files.length === 0) {
+            notify('Debes subir el comprobante de transferencia');
+            return;
+        }
+
+        var file = fileInput.files[0];
+        if (file.type !== 'image/jpeg' && file.type !== 'image/png') {
+            notify('Solo se permiten archivos JPG o PNG');
+            return;
+        }
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Procesando...';
+
+        var totalPrice = cart.reduce(function(sum, item) { return sum + (item.precio * item.qty); }, 0);
+
+        var ticketData = cart.map(function(item) {
+            return {
+                nombre: item.nombre,
+                variante: item.variante,
+                sabor: item.sabor,
+                conPapas: item.conPapas,
+                precio: item.precio,
+                qty: item.qty,
+                subtotal: item.precio * item.qty
+            };
+        });
+
+        var formData = new FormData();
+        formData.append('ticket', JSON.stringify(ticketData));
+        formData.append('total', totalPrice);
+        formData.append('comprobante', file);
+
+        fetch('/pedido', {
+            method: 'POST',
+            headers: { 'x-api-key': '<%= apiKey %>' },
+            body: formData
+        })
+        .then(function(response) { return response.json(); })
+        .then(function(data) {
+            if (data.ok) {
+                if (form && typeof form.reset === 'function') {
+                    form.reset();
+                } else {
+                    fileInput.value = '';
+                }
+
+                cart = [];
+                updateCartUI();
+
+                document.getElementById('checkout-form-view').style.display = 'none';
+                document.getElementById('checkout-success-view').style.display = 'block';
+                document.getElementById('success-pedido-id').textContent = 'Pedido #' + data.pedido_id;
+            } else {
+                notify(data.error || 'Error al procesar el pedido');
+            }
+        })
+        .catch(function(err) {
+            console.error('Error:', err);
+            notify('Error de conexion. Intenta nuevamente.');
+        })
+        .finally(function() {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Confirmar Pedido';
+        });
+    }
+</script>

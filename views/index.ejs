@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <%- include('partials/head') %>
+</head>
+<body>
+
+    <%- include('partials/navbar') %>
+
+    <header class="hero-simple">
+        <h1 class="hero-title">MAXI <br><span>KIOSCO</span></h1>
+        <p class="hero-subtitle">Comidas al paso. Arma tu pedido, paga por transferencia y retira en el local.</p>
+        <a href="#promos" class="hero-cta">Ver Menu</a>
+    </header>
+
+    <%- include('partials/hero_promos') %>
+
+    <section id="menu" class="section-catalog">
+        <div style="max-width: 900px; margin: 0 auto;">
+            <h2 class="section-title">Nuestros Productos</h2>
+            <div class="catalog-grid">
+                <%- include('partials/product_grid') %>
+                <%- include('partials/services_section') %>
+            </div>
+        </div>
+    </section>
+
+    <div class="cart-overlay" id="cart-overlay" onclick="toggleCart()"></div>
+    <div class="cart-panel" id="cart-panel">
+        <div class="cart-header">
+            <span class="cart-header-title">Tu Pedido</span>
+            <button class="cart-close" onclick="toggleCart()" id="btn-cart-close">&times;</button>
+        </div>
+        <div class="cart-body" id="cart-body">
+            <div class="cart-empty" id="cart-empty">Sin productos en el pedido</div>
+        </div>
+        <div class="cart-footer">
+            <div class="cart-total-row">
+                <span class="cart-total-label">Total</span>
+                <span class="cart-total-value" id="cart-total">$0</span>
+            </div>
+            <button class="btn-checkout" id="btn-checkout" disabled onclick="openCheckout()">Finalizar Pedido</button>
+        </div>
+    </div>
+
+    <div class="checkout-overlay" id="checkout-overlay">
+        <div class="checkout-modal" id="checkout-modal">
+            <div id="checkout-form-view">
+                <div class="checkout-header">
+                    <span class="checkout-title">Finalizar Pedido</span>
+                    <button class="checkout-close" onclick="closeCheckout()" id="btn-checkout-close">&times;</button>
+                </div>
+                <div class="checkout-body">
+                    <div class="checkout-total-display">
+                        <div class="checkout-total-label">Total a Transferir</div>
+                        <div class="checkout-total-amount" id="checkout-total">$0</div>
+                    </div>
+                    <form id="checkout-form" onsubmit="event.preventDefault(); submitOrder();">
+                        <div class="transfer-block">
+                            <div class="transfer-block-title">Datos de Transferencia</div>
+                            <div class="transfer-row">
+                                <span class="transfer-label">Entidad</span>
+                                <span class="transfer-value">Brubank</span>
+                            </div>
+                            <div class="transfer-row">
+                                <span class="transfer-label">Alias</span>
+                                <span class="transfer-value">leni.0405</span>
+                            </div>
+                            <div class="transfer-row">
+                                <span class="transfer-label">CBU</span>
+                                <span class="transfer-value">1430001713017541320014</span>
+                            </div>
+                        </div>
+                        <div class="upload-section">
+                            <label class="upload-label" for="comprobante-input">Subir Comprobante de Transferencia (obligatorio)</label>
+                            <input type="file" class="upload-input" id="comprobante-input" accept="image/jpeg, image/png" required>
+                        </div>
+                        <button type="submit" class="btn-submit-order" id="btn-submit">Confirmar Pedido</button>
+                    </form>
+                </div>
+            </div>
+            <div id="checkout-success-view" style="display: none;">
+                <div class="checkout-header">
+                    <span class="checkout-title">Pedido Registrado</span>
+                    <button class="checkout-close" onclick="closeCheckoutSuccess()" id="btn-success-close">&times;</button>
+                </div>
+                <div class="success-message">
+                    <div class="success-icon">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                    </div>
+                    <div class="success-title">Pedido Recibido</div>
+                    <p class="success-text">Tu pedido fue registrado correctamente. Estamos validando el comprobante. Podes retirarlo en el local una vez confirmado.</p>
+                    <div class="success-id" id="success-pedido-id"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="notification" id="notification"></div>
+
+    <footer class="footer">
+        <p>Luzuriaga 92 | Kiosco y Comidas</p>
+    </footer>
+
+    <%- include('partials/scripts') %>
+
+</body>
+</html>
